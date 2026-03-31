@@ -1,0 +1,22 @@
+$text: #605950;
+//$background: #f4f2f0;
+$background: #b76411;
+$primary: #7bc824;
+$secondary: #d4ed31;
+$accent: #bccefb;
+
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/maps";
+@import "node_modules/bootstrap/scss/mixins";
+
+$theme-colors: (
+    "primary": $primary,
+    "secondary": $secondary,
+    "background": $background,
+    "text": $text,
+    "accent": $accent
+    "dark" $text
+);
+
+@import "node_modules/bootstrap/scss/bootstrap";
