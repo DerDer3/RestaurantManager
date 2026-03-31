@@ -1,10 +1,13 @@
 import mysql.connector
 
+import Los
+from dotenv import load_dotenv
+
 conn = mysql.connector.connect(
-    host="localhost",
-    user="derek",
-    password="password",
-    database="fooddb"
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
 )
 cursor = conn.cursor()
 

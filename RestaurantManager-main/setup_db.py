@@ -1,16 +1,18 @@
 import mysql.connector
 
-# Connect without specifying a database first
+import Los
+from dotenv import load_dotenv
+
 conn = mysql.connector.connect(
-    host="localhost",
-    user="derek",
-    password="password",
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
 )
 cursor = conn.cursor()
 
 # Create and select the database
-cursor.execute("CREATE DATABASE IF NOT EXISTS fooddb")
-cursor.execute("USE fooddb")
+cursor.execute("CREATE DATABASE IF NOT EXISTS " + os.getenv("DB_NAME"))
+cursor.execute("USE " + os.getenv("DB_NAME"))
 
 tables = [
     """
