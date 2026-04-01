@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for, flash
 from db import get_db, close_db
+
+import bcrypt
 
 app = Flask(__name__)
 app.secret_key = "password"
@@ -41,6 +43,30 @@ def index():
             results.append(restaurant)
 
     return render_template("index.html", results=results, query=query)
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        username = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+        try:
+            db= get_db()
+            cursor = db.cursor()
+            cursor.execute("INSERT INTO User (username, email, password) VALUES (%s, %s, %s)", 
+                (username, email, hashed)
+            )
+            db.commit()
+            flash("Account created! You can now login")
+            return redirect(url_for("index"))
+        except Exception as e:
+            flash("Email already in use")
+            return redirect(url_for("signup"))
+
+    return render_template("signup.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

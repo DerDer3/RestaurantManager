@@ -1,7 +1,9 @@
 import mysql.connector
 
-import Los
+import os
 from dotenv import load_dotenv
+
+load_dotenv()
 
 conn = mysql.connector.connect(
     host=os.getenv("DB_HOST"),
@@ -11,14 +13,14 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 # Create and select the database
-cursor.execute("CREATE DATABASE IF NOT EXISTS " + os.getenv("DB_NAME"))
-cursor.execute("USE " + os.getenv("DB_NAME"))
+cursor.execute(f"CREATE DATABASE IF NOT EXISTS {os.getenv("DB_NAME")}")
+cursor.execute(f"USE {os.getenv("DB_NAME")}")
 
 tables = [
     """
     CREATE TABLE IF NOT EXISTS Chef (
         id        INT AUTO_INCREMENT PRIMARY KEY,
-        name      VARCHAR(100)
+        `name`      VARCHAR(100),
         bio       TEXT,
         exp       INT,
         specialty VARCHAR(100)
@@ -27,7 +29,7 @@ tables = [
     """
     CREATE TABLE IF NOT EXISTS Restaurant (
         id             INT AUTO_INCREMENT PRIMARY KEY,
-        name           VARCHAR(100)
+        `name`           VARCHAR(100),
         location       VARCHAR(255),
         michelin_stars INT     DEFAULT 0,
         is_q1          BOOLEAN DEFAULT FALSE
@@ -36,7 +38,7 @@ tables = [
     """
     CREATE TABLE IF NOT EXISTS Dish (
         id            INT AUTO_INCREMENT PRIMARY KEY,
-        name          VARCHAR(100)
+        `name`          VARCHAR(100),
         price         DECIMAL(6,2),
         avg_rating    DECIMAL(3,2),
         calorie_count INT
@@ -67,6 +69,14 @@ tables = [
         PRIMARY KEY (restaurant_id, dish_id),
         FOREIGN KEY (restaurant_id) REFERENCES Restaurant(id),
         FOREIGN KEY (dish_id)       REFERENCES Dish(id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS User (
+        id          INT AUTO_INCREMENT PRIMARY KEY,
+        username    VARCHAR(100) NOT NULL,
+        email       VARCHAR(100) NOT NULL UNIQUE,
+        password    VARCHAR(255) NOT NULL
     )
     """,
 ]

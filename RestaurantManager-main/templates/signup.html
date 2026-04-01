@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up</title>
+  <style>
+  </style>
+</head>
+
+<body>
+  <h1>Sign Up</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for messages in messages %}
+        <p class="{{ 'error' if 'already' in message else 'success' }}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="/signup">
+    <label>Username</label>
+    <input type="text" name="name" required>
+    
+    <label>Email</label>
+    <input type="text" name="email" required>
+
+    <label>Password</label>
+    <input type="text" name="password" required>
+
+    <button type="submit">Create Account</button>
+  </form>
+
+  <br>
+
+  <a href="/">Back to search</a>
+</body>
+</html>
