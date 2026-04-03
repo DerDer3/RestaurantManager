@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from db import get_db, close_db
 
 import bcrypt
@@ -10,6 +10,7 @@ app.teardown_appcontext(close_db)
 @app.route("/")
 def index():
     query = request.args.get("q", "")
+    min_rating = request.args.get("min_rating", 0, type=float)
     results = []
 
     if query:
@@ -22,18 +23,16 @@ def index():
         restaurants = cursor.fetchall()
 
         for restaurant in restaurants:
-            # Get chefs at this restaurant
             cursor.execute("""
-                SELECT c.specialty, c.exp
+                SELECT c.name, c.specialty, c.exp
                 FROM Chef c
                 JOIN WorksAt w ON c.id = w.chef_id
                 WHERE w.restaurant_id = %s
             """, (restaurant["id"],))
             restaurant["chefs"] = cursor.fetchall()
 
-            # Get dishes served at this restaurant
             cursor.execute("""
-                SELECT d.price, d.avg_rating, d.calorie_count
+                SELECT d.name, d.price, d.avg_rating, d.calorie_count
                 FROM Dish d
                 JOIN Serves s ON d.id = s.dish_id
                 WHERE s.restaurant_id = %s
@@ -42,7 +41,7 @@ def index():
 
             results.append(restaurant)
 
-    return render_template("index.html", results=results, query=query)
+    return render_template("index.html", results=results, query=query, min_rating=min_rating)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -67,6 +66,32 @@ def signup():
             return redirect(url_for("signup"))
 
     return render_template("signup.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email    = request.form["email"]
+        password = request.form["password"]
+
+        cursor = get_db().cursor(dictionary=True)
+        cursor.execute("SELECT * FROM User WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+            session["user_id"]   = user["id"]
+            session["user_name"] = user["username"]
+            flash("Welcome back, " + user["username"] + "!")
+            return redirect(url_for("index"))
+        else:
+            flash("Invalid email or password.")
+            return redirect(url_for("login"))
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.run(debug=True)
