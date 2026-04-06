@@ -19,29 +19,41 @@ cursor.execute(f"USE {os.getenv("DB_NAME")}")
 tables = [
     """
     CREATE TABLE IF NOT EXISTS Chef (
-        id        INT AUTO_INCREMENT PRIMARY KEY,
-        `name`      VARCHAR(100),
-        bio       TEXT,
-        exp       INT,
-        specialty VARCHAR(100)
+        id          INT AUTO_INCREMENT PRIMARY KEY,
+        first_name  VARCHAR(100),
+        last_name   VARCHAR(100),
+        specialty   VARCHAR(100),
+        title       VARCHAR(100),
+        bio         TEXT,
+        exp         INT
     )
     """,
     """
     CREATE TABLE IF NOT EXISTS Restaurant (
-        id             INT AUTO_INCREMENT PRIMARY KEY,
-        `name`           VARCHAR(100),
-        location       VARCHAR(255),
-        michelin_stars INT     DEFAULT 0,
-        is_q1          BOOLEAN DEFAULT FALSE
+        id              INT AUTO_INCREMENT PRIMARY KEY,
+        `name`          VARCHAR(100),
+        cuisine_type    VARCHAR(100),
+        address         VARCHAR(255),
+        city            VARCHAR(100),
+        state           VARCHAR(2),
+        zip_code        VARCHAR(10),
+        phone           VARCHAR(30),
+        website         VARCHAR(100),
+        price_range     VARCHAR(4),
+        rating          DECIMAL(3,2),
+        michelin_stars  INT     DEFAULT 0
     )
     """,
     """
     CREATE TABLE IF NOT EXISTS Dish (
-        id            INT AUTO_INCREMENT PRIMARY KEY,
+        id              INT AUTO_INCREMENT PRIMARY KEY,
         `name`          VARCHAR(100),
-        price         DECIMAL(6,2),
-        avg_rating    DECIMAL(3,2),
-        calorie_count INT
+        description     TEXT,
+        price           DECIMAL(6,2),
+        course_type     VARCHAR(100),
+        dietary_info    VARCHAR(100),
+        calorie_count   INT,
+        is_seasonal     BOOLEAN
     )
     """,
     """

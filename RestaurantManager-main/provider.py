@@ -57,7 +57,7 @@ class RestaurantProvider(BaseProvider):
             "specialty": specialty,
             "title": self.chef_title(),
             "bio": self.chef_bio(f"{first} {last}", specialty),
-            "years_experience": random.randint(1, 35),
+            "exp": random.randint(1, 35),
         }
 
     # ------------------------------------------------------------------ #
@@ -115,8 +115,6 @@ class RestaurantProvider(BaseProvider):
             "price_range": self.price_range(),
             "rating": self.restaurant_rating(),
             "michelin_stars": self.michelin_stars(),
-            "seating_capacity": random.randint(20, 300),
-            "year_opened": random.randint(1970, 2024),
         }
 
     # ------------------------------------------------------------------ #

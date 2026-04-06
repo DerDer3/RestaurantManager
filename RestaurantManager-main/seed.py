@@ -1,13 +1,14 @@
 import mysql.connector
 import os
+import random
 from dotenv import load_dotenv
 from faker import Faker
-from faker_provider import RestaurantProvider
+from provider import RestaurantProvider
 
 
 load_dotenv()
 fake = Faker()
-fake.faker_provider(RestaurantProvider)
+fake.add_provider(RestaurantProvider)
 
 conn = mysql.connector.connect(
     host=os.getenv("DB_HOST"),
@@ -37,36 +38,46 @@ RESTAURANT_RANGE = 30
 DISH_RANGE = 120
 
 restaurants = [fake.restaurant() for _ in range(RESTAURANT_RANGE)]
-cursor.executemany(
-    "INSERT IGNORE INTO Restaurant (name, location, michelin_stars, is_q1) VALUES (%s, %s, %s, %s)",
-    restaurants
-)
+for r in restaurants:
+    cursor.execute(
+        """INSERT INTO Restaurant
+        (name, cuisine_type, address, city, state, zip_code, phone, website, price_range, rating, michelin_stars)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+        (r["name"], r["cuisine_type"], r["address"], r["city"], r["state"],
+         r["zip_code"], r["phone"], r["website"],
+         r["price_range"], r["rating"], r["michelin_stars"])
+    )
 
-chefs = [fake.chef for _ in range(CHEF_RANGE)]
-cursor.executemany(
-    "INSERT IGNORE INTO Chef (name, bio, exp, specialty) VALUES (%s, %s, %s, %s)",
-    chefs
-)
+chefs = [fake.chef() for _ in range(CHEF_RANGE)]
+for chef in chefs:
+    cursor.execute(
+    "INSERT IGNORE INTO Chef (first_name, last_name, specialty, title, bio, exp) VALUES (%s, %s, %s, %s, %s, %s)",
+    (chef["first_name"], chef["last_name"], chef["specialty"], chef["title"], chef["bio"], chef["exp"])
+    )
 
 dishes = [fake.dish() for _ in range(DISH_RANGE)]
-cursor.executemany(
-    "INSERT IGNORE INTO Dish (name, price, avg_rating, calorie_count) VALUES (%s, %s, %s, %s)",
-    dishes
-)
+for d in dishes:
+    cursor.execute(
+        """INSERT INTO Dish
+        (name, description, price, course_type, dietary_info, calorie_count, is_seasonal)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+        (d["name"], d["description"], d["price"], d["course_type"],
+         d["dietary_info"], d["calories"], d["is_seasonal"])
+    )
 
-serves = [fake.serves(random.randint(1,RESTAURANT_RANGE),  random.randint(1,DISH_RANGE))  for _ in range(300)]
+serves = [(random.randint(1,RESTAURANT_RANGE), random.randint(1,DISH_RANGE)) for _ in range(300)]
 cursor.executemany(
     "INSERT IGNORE INTO Serves (restaurant_id, dish_id) VALUES (%s, %s)",
     serves
 )
 
-works = [fake.works_at(random.randint(1,CHEF_RANGE), random.randint(1,RESTAURANT_RANGE)) for _ in range(200)]
+works = [(random.randint(1,CHEF_RANGE), random.randint(1,RESTAURANT_RANGE)) for _ in range(200)]
 cursor.executemany(
     "INSERT IGNORE INTO WorksAt (restaurant_id, chef_id) VALUES (%s, %s)",
     works
 )
 
-creates_rows  = [fake.creates(random.randint(1,CHEF_RANGE), random.randint(1,DISH_RANGE))  for _ in range(250)]
+creates = [(random.randint(1,CHEF_RANGE), random.randint(1,DISH_RANGE)) for _ in range(250)]
 
 conn.commit()
 conn.close()
