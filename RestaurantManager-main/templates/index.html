@@ -47,10 +47,6 @@
                     {% endif %}
                 </ul>
 
-                <form class="d-flex" role="search">
-            <input class="form-control me-2 border-0 shadow-sm" type="search" name="q" value="{{ query }}" placeholder="Search Chef, Dish, Location..." aria-label="Search"/>
-                    <button class="btn btn-primary" type="submit">Search</button>
-                </form>
             </div>
         </div>
     </nav>
@@ -61,6 +57,36 @@
                 <h1 class="display-4">Restaurant Network Explorer</h1>
                 <p class="lead text-muted">Discover connections between chefs, dishes, and top-rated restaurants.</p>
             </div>
+
+            <form class="d-flex mx-auto" role="search" style="width: 55%" action="/search" method="GET">
+              <input type="hidden" name="search_by" id="searchByValue" value="chefs">
+
+              <div class="nav-item dropdown" style="width: 25%">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="searchByLabel">
+                  Chefs
+                </a>
+                <ul class="dropdown-menu border-0 shadow-sm">
+                  <li><a class="dropdown-item" href="#" data-value="location">Location</a></li>
+                  <li><a class="dropdown-item" href="#" data-value="restaurants">Restaurants</a></li>
+                  <li><a class="dropdown-item" href="#" data-value="chefs">Chefs</a></li>
+                  <li><a class="dropdown-item" href="#" data-value="dishes">Dishes</a></li>
+                </ul>
+              </div>
+
+              <input class="form-control me-3 border-0 shadow-sm" type="search" name="q" 
+                    value="{{ query }}" placeholder="Search Chef, Dish, Location..." aria-label="Search"/>
+              <button class="btn btn-primary" type="submit">Search</button>
+            </form>
+
+            <script>
+              document.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  document.getElementById('searchByLabel').textContent = this.textContent;
+                  document.getElementById('searchByValue').value = this.dataset.value;
+                });
+              });
+            </script>
         </div>
 
         <div class="row g-4">
