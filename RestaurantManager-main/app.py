@@ -17,33 +17,14 @@ def index():
     if query:
         match search:
             case "location":
-
+                print(f"Location query {query}")
                 cursor = get_db().cursor(dictionary=True)
                 cursor.execute("""
-                    SELECT DISTINCT r.id, r.name, r.location, r.michelin_stars, r.is_q1
+                    SELECT DISTINCT r.name, r.id, r.address, r.city, r.state, r.price_range, r.rating, r.michelin_stars
                     FROM Restaurant r
-                    WHERE r.location LIKE %s
+                    WHERE CONCAT(r.address, ', ', r.city, ' ', r.state) LIKE %s 
                 """, (f"%{query}%",))
-                restaurants = cursor.fetchall()
-
-                for restaurant in restaurants:
-                    cursor.execute("""
-                        SELECT c.name, c.specialty, c.exp
-                        FROM Chef c
-                        JOIN WorksAt w ON c.id = w.chef_id
-                        WHERE w.restaurant_id = %s
-                    """, (restaurant["id"],))
-                    restaurant["chefs"] = cursor.fetchall()
-
-                    cursor.execute("""
-                        SELECT d.name, d.price, d.avg_rating, d.calorie_count
-                        FROM Dish d
-                        JOIN Serves s ON d.id = s.dish_id
-                        WHERE s.restaurant_id = %s
-                    """, (restaurant["id"],))
-                    restaurant["dishes"] = cursor.fetchall()
-
-                    results.append(restaurants)
+                results = cursor.fetchall()
 
             case "restaurants":
                 print(f"Restaurant query {query}")
