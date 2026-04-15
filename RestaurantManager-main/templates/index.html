@@ -58,7 +58,7 @@
                 <p class="lead text-muted">Discover connections between chefs, dishes, and top-rated restaurants.</p>
             </div>
 
-            <form class="d-flex mx-auto" role="search" style="width: 55%" action="/search" method="GET">
+            <form class="d-flex mx-auto" role="search" style="width: 55%" action="/" method="GET">
               <input type="hidden" name="search_by" id="searchByValue" value="chefs">
 
               <div class="nav-item dropdown" style="width: 25%">
@@ -90,47 +90,142 @@
         </div>
 
         <div class="row g-4">
-          <div class="card-body">
+            <div class="card-body">
                 {% if results %}
-                    {% for r in results %}
-                    <div class="card mb-3 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ r.name }}</h5>
-                            <p class="text-muted mb-1">{{ r.location }}</p>
-                            <span class="badge bg-primary">⭐ {{ r.michelin_stars }} Michelin stars</span>
-                            {% if r.is_q1 %}<span class="badge bg-success">Q1</span>{% endif %}
+                    {% if search_type == "restaurants"%}
+                        <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                            {% for r in results %}
+                                <div class="col">
+                                    <div class="card mb-3 border-0 shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ r.name }}</h5>
+                                            <p class="text-muted mb-1">{{ r.address }}, {{r.city}} {{r.state}}</p>
+                                            <p class="text-muted mb-1">{{ r.price_range }}</p>
+                                            <span class="badge bg-primary">⭐ {{ r.rating }} Rating</span>
+                                            <span class="badge bg-primary">⭐ {{ r.michelin_stars }} Michelin stars</span>
 
-                            {% if r.chefs %}
-                            <h6 class="mt-3">Chefs</h6>
-                            <table class="table table-sm">
-                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
-                                <tbody>
-                                    {% for chef in r.chefs %}
-                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            {% endif %}
+                                            {% if r.chefs %}
+                                            <h6 class="mt-3">Chefs</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
+                                                <tbody>
+                                                    {% for chef in r.chefs %}
+                                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
 
-                            {% if r.dishes %}
-                            <h6 class="mt-3">Dishes</h6>
-                            <table class="table table-sm">
-                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
-                                <tbody>
-                                    {% for dish in r.dishes %}
-                                    <tr>
-                                        <td>{{ dish.name }}</td>
-                                        <td>${{ "%.2f"|format(dish.price) }}</td>
-                                        <td>{{ dish.avg_rating }}/5</td>
-                                        <td>{{ dish.calorie_count }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            {% endif %}
+                                            {% if r.dishes %}
+                                            <h6 class="mt-3">Dishes</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
+                                                <tbody>
+                                                    {% for dish in r.dishes %}
+                                                    <tr>
+                                                        <td>{{ dish.name }}</td>
+                                                        <td>${{ "%.2f"|format(dish.price) }}</td>
+                                                        <td>{{ dish.avg_rating }}/5</td>
+                                                        <td>{{ dish.calorie_count }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
-                    </div>
-                    {% endfor %}
+                    {% elif search_type == "chefs"%}
+                        <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                            {% for r in results %}
+                                <div class="col">
+                                    <div class="card mb-3 border-0 shadow-sm">
+                                        <div class="card-body text-center">
+                                          <h5 class="card-title">{{ r.first_name }} {{r.last_name}}</h5>
+                                          <p class="text-muted mb-1">{{ r.title }}</p>
+                                          <p class="text-muted mb-1">{{ r.specialty }}</p>
+
+                                            {% if r.chefs %}
+                                            <h6 class="mt-3">Chefs</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
+                                                <tbody>
+                                                    {% for chef in r.chefs %}
+                                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+
+                                            {% if r.dishes %}
+                                            <h6 class="mt-3">Dishes</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
+                                                <tbody>
+                                                    {% for dish in r.dishes %}
+                                                    <tr>
+                                                        <td>{{ dish.name }}</td>
+                                                        <td>${{ "%.2f"|format(dish.price) }}</td>
+                                                        <td>{{ dish.avg_rating }}/5</td>
+                                                        <td>{{ dish.calorie_count }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                      {% elif search_type == "dishes"%}
+                        <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                            {% for r in results %}
+                                <div class="col">
+                                    <div class="card mb-3 border-0 shadow-sm">
+                                        <div class="card-body text-center">
+                                          <h5 class="card-title">{{ r.name }}</h5>
+                                          <p class="text-muted mb-1">{{ r.description }}</p>
+                                          <p class="text-muted mb-1">{{ r.specialty }}</p>
+                                          <span class="badge bg-primary">${{ r.price }}</span>
+
+                                            {% if r.chefs %}
+                                            <h6 class="mt-3">Chefs</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
+                                                <tbody>
+                                                    {% for chef in r.chefs %}
+                                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+
+                                            {% if r.dishes %}
+                                            <h6 class="mt-3">Dishes</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
+                                                <tbody>
+                                                    {% for dish in r.dishes %}
+                                                    <tr>
+                                                        <td>{{ dish.name }}</td>
+                                                        <td>${{ "%.2f"|format(dish.price) }}</td>
+                                                        <td>{{ dish.avg_rating }}/5</td>
+                                                        <td>{{ dish.calorie_count }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    {% endif %}
                 {% elif query %}
                     <p class="text-muted text-center mt-5">No results found for "{{ query }}".</p>
                 {% else %}

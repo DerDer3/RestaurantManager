@@ -10,7 +10,7 @@ app.teardown_appcontext(close_db)
 @app.route("/")
 def index():
     query = request.args.get("q", "")
-    search = reuest.args.get("search_by", "")
+    search = request.args.get("search_by", "")
     min_rating = request.args.get("min_rating", 0, type=float)
     results = []
 
@@ -43,16 +43,41 @@ def index():
                     """, (restaurant["id"],))
                     restaurant["dishes"] = cursor.fetchall()
 
-                    results.append(restaurant)
+                    results.append(restaurants)
 
             case "restaurants":
+                print(f"Restaurant query {query}")
+                cursor = get_db().cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT DISTINCT r.name, r.id, r.address, r.city, r.state, r.price_range, r.rating, r.michelin_stars
+                    FROM Restaurant r
+                    WHERE r.name LIKE %s 
+                """, (f"%{query}%",))
+                results = cursor.fetchall()
+
 
             case "chefs":
+                print(f"Chef query {query}")
+                cursor = get_db().cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT DISTINCT c.first_name, c.last_name, c.id, c.title, c.specialty
+                    FROM Chef c
+                    WHERE CONCAT(c.first_name, ' ', c.last_name) LIKE %s 
+                """, (f"%{query}%",))
+                results = cursor.fetchall()
 
             case "dishes":
+                print(f"Dish query {query}")
+                cursor = get_db().cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT DISTINCT d.id, d.name, d.price, d.description
+                    FROM Dish d
+                    WHERE d.name LIKE %s 
+                """, (f"%{query}%",))
+                results = cursor.fetchall()
 
 
-    return render_template("index.html", results=results, query=query, min_rating=min_rating)
+    return render_template("index.html", results=results, query=query, search_type=search)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
