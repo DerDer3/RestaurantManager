@@ -6,7 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="main.css">
+    <style>
+        .selectable-card {
+          cursor: pointer;
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .selectable-card.selected {
+          border: 1.5px solid #0d6efd !important;
+          box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+        }
+    </style>
 </head>
+
+<script>
+  function selectCard(el) {
+    document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+
+    const id = el.dataset.id;
+    const type = el.dataset.type;
+
+    fetch(`/api/entity/${type}/${id}`);
+  }
+</script>
 
 <body class="bg-background">
     <nav class="navbar navbar-expand-lg custom-navbar">
@@ -87,6 +110,7 @@
                 });
               });
             </script>
+
         </div>
 
         <div class="row g-4">
@@ -96,7 +120,7 @@
                         <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
                             {% for r in results %}
                                 <div class="col">
-                                    <div class="card mb-3 border-0 shadow-sm">
+                                    <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
                                         <div class="card-body text-center">
                                             <h5 class="card-title">{{ r.name }}</h5>
                                             <p class="text-muted mb-1">{{ r.address }}, {{r.city}} {{r.state}}</p>
@@ -141,7 +165,7 @@
                         <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
                             {% for r in results %}
                                 <div class="col">
-                                    <div class="card mb-3 border-0 shadow-sm">
+              <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
                                         <div class="card-body text-center">
                                             <h5 class="card-title">{{ r.name }}</h5>
                                             <p class="text-muted mb-1">{{ r.address }}, {{r.city}} {{r.state}}</p>
@@ -186,7 +210,7 @@
                         <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
                             {% for r in results %}
                                 <div class="col">
-                                    <div class="card mb-3 border-0 shadow-sm">
+              <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
                                         <div class="card-body text-center">
                                           <h5 class="card-title">{{ r.first_name }} {{r.last_name}}</h5>
                                           <p class="text-muted mb-1">{{ r.title }}</p>
@@ -229,7 +253,7 @@
                         <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
                             {% for r in results %}
                                 <div class="col">
-                                    <div class="card mb-3 border-0 shadow-sm">
+              <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
                                         <div class="card-body text-center">
                                           <h5 class="card-title">{{ r.name }}</h5>
                                           <p class="text-muted mb-1">{{ r.description }}</p>
@@ -281,6 +305,17 @@
                     </div>
                 {% endif %}
             </div>
+
+              <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            {% if selection_type == "restaurants" %}
+                                <h1>{{ info.name }}</h1>
+                            {% endif %}
+                        </div>
+                </div>
+            </div>
+
             <div class="col-md-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">

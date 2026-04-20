@@ -60,6 +60,54 @@ def index():
 
     return render_template("index.html", results=results, query=query, search_type=search)
 
+@app.route("/api/entity/<string:entity_type>/<int:entity_id>")
+def get_selection(entity_type, entity_id):
+    print(entity_type)
+    print(entity_id)
+
+    info = None
+    
+    if entity_type:
+        match entity_type:
+            case "location":
+                cursor = get_db().cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT DISTINCT *
+                    FROM Restaurant r
+                    WHERE r.id = %s 
+                """, (f"%{entity_id}%",))
+                info = cursor.fetchall()
+
+            case "restaurants":
+                cursor = get_db().cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT DISTINCT *
+                    FROM Restaurant r
+                    WHERE r.id = %s 
+                """, (f"%{entity_id}%",))
+                info = cursor.fetchall()
+
+            case "chefs":
+                cursor = get_db().cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT DISTINCT *
+                    FROM Chef c
+                    WHERE c.id = %s 
+                """, (f"%{entity_id}%",))
+                info = cursor.fetchall()
+
+            case "dishes":
+                cursor = get_db().cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT DISTINCT *
+                    FROM Dish d
+                    WHERE d.id = %s 
+                """, (f"%{entity_id}%",))
+                info = cursor.fetchall()
+
+    return render_template("index.html", info=info, selection_type=entity_type)
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
