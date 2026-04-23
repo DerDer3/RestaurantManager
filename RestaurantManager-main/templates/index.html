@@ -19,22 +19,14 @@
     </style>
 </head>
 
-<script>
-  function selectCard(el) {
-    document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
+<script src="{{ url_for('static', filename='js/graph-filter.js') }}" defer></script>
 
-    const id = el.dataset.id;
-    const type = el.dataset.type;
 
-    fetch(`/api/entity/${type}/${id}`);
-  }
-</script>
 
 <body class="bg-background">
     <nav class="navbar navbar-expand-lg custom-navbar">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="/">ChefGraph</a>
+            <a class="navbar-brand fw-bold" href="/">ChefBase</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -49,15 +41,6 @@
                         <a class="nav-link" aria-current="page" href="#">Map</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Analysis Tools
-                        </a>
-                        <ul class="dropdown-menu border-0 shadow-sm">
-                            <li><a class="dropdown-item" href="#">Influence (h-index)</a></li>
-                            <li><a class="dropdown-item" href="#">Q1 Restaurants</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Reset Graph</a></li>
-                        </ul>
                     </li>
                     {% if session.user_id %}
                         <span class="navbar-text me-3">
@@ -77,41 +60,76 @@
     <main class="container my-5">
         <div class="row mb-4">
             <div class="col-12 text-center">
-                <h1 class="display-4">Restaurant Network Explorer</h1>
+                <h1 class="display-4">ChefBase</h1>
                 <p class="lead text-muted">Discover connections between chefs, dishes, and top-rated restaurants.</p>
             </div>
+            <form class="d-flex mx-auto align-items-center gap-2" style="width: 55%" action="/" method="GET" data-search-type="{{ search_type }}">
+                <input type="hidden" name="search_by" id="searchByValue" value="{{ search_type }}">
 
-            <form class="d-flex mx-auto" role="search" style="width: 55%" action="/" method="GET">
-              <input type="hidden" name="search_by" id="searchByValue" value="chefs">
+                <!-- Category dropdown -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-nowrap" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="searchByLabel">
+                        {{ search_type | capitalize }}
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-sm">
+                        <li><a class="dropdown-item" href="#" data-value="location">Location</a></li>
+                        <li><a class="dropdown-item" href="#" data-value="restaurants">Restaurants</a></li>
+                        <li><a class="dropdown-item" href="#" data-value="chefs">Chefs</a></li>
+                        <li><a class="dropdown-item" href="#" data-value="dishes">Dishes</a></li>
+                    </ul>
+                </div>
 
-              <div class="nav-item dropdown" style="width: 25%">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="searchByLabel">
-                  Chefs
-                </a>
-                <ul class="dropdown-menu border-0 shadow-sm">
-                  <li><a class="dropdown-item" href="#" data-value="location">Location</a></li>
-                  <li><a class="dropdown-item" href="#" data-value="restaurants">Restaurants</a></li>
-                  <li><a class="dropdown-item" href="#" data-value="chefs">Chefs</a></li>
-                  <li><a class="dropdown-item" href="#" data-value="dishes">Dishes</a></li>
-                </ul>
-              </div>
+                <input class="form-control border-0 shadow-sm" type="search" name="q"
+                      value="{{ query }}" placeholder="Search Chef, Dish, Location..." aria-label="Search"/>
 
-              <input class="form-control me-3 border-0 shadow-sm" type="search" name="q" 
-                    value="{{ query }}" placeholder="Search Chef, Dish, Location..." aria-label="Search"/>
-              <button class="btn btn-primary" type="submit">Search</button>
+                <!-- Filter trigger button -->
+                <button type="button" class="btn btn-outline-secondary text-nowrap" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="bi bi-sliders"></i> Filters <span id="filterBadge" class="badge bg-primary ms-1 d-none">0</span>
+                </button>
+
+                <button class="btn btn-primary text-nowrap" type="submit">Search</button>
             </form>
-
-            <script>
-              document.querySelectorAll('.dropdown-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  document.getElementById('searchByLabel').textContent = this.textContent;
-                  document.getElementById('searchByValue').value = this.dataset.value;
-                });
-              });
-            </script>
-
         </div>
+
+        <!-- Filter Modal -->
+        <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-semibold" id="filterModalLabel">Filters</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body pt-2" id="filterModalBody">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div class="modal-footer border-0 d-flex justify-content-between">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none" id="clearFiltersBtn">Clear all</button>
+                        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Modal -->
+        <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-semibold" id="filterModalLabel">Filters</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body pt-2" id="filterModalBody">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div class="modal-footer border-0 d-flex justify-content-between">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none" id="clearFiltersBtn">Clear all</button>
+                        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script src="{{ url_for('static', filename='js/filter.js') }}" defer></script>
 
         <div class="row g-4">
             <div class="card-body">
@@ -295,8 +313,8 @@
                         </div>
 
                     {% endif %}
-                {% elif query %}
-                    <p class="text-muted text-center mt-5">No results found for "{{ query }}".</p>
+                {% elif search_type %}
+                    <p class="text-muted text-center mt-5">No results found.</p>
                 {% else %}
                     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 400px;">
                         <i class="bi bi-search mb-3" style="font-size: 3rem; color: #ccc;"></i>
@@ -306,13 +324,9 @@
                 {% endif %}
             </div>
 
-              <div class="col-12">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            {% if selection_type == "restaurants" %}
-                                <h1>{{ info.name }}</h1>
-                            {% endif %}
-                        </div>
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div id="entity-detail"></div>
                 </div>
             </div>
 
@@ -320,34 +334,29 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
                         <h5 class="card-title">Search & Filter</h5>
-                        <form mathod="GET" action="/">
                             <div class="mb-3">
-                                <label class="form-label">Chef Name</label>
-                  <input type="text" class="form-control" name="q" value="{{ queue }}" placeholder="e.g. Gordon Ramsay">
+                                <label class="form-label">Selected:</label>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Minimum Rating</label>
-                  <input type="range" id="min_rating" class="form-range" min="0" max="5" step="0.5" value="{{ min_rating or 0 }}" oninput="this.nextElementSibling.innerText = this.value">
-                  <p>Value: <span>0</span></p>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Update Graph</button>
-                        </form>
+                  <div class="col-12">
+                      <div class="card shadow-sm border-0">
+                          <div class="card-body">
+                              <div id="entity-title"></div>
+                          </div>
+                      </div>
+                  </div>                 
+                      <div id="inlineFilters" class="mx-auto mt-3 d-none" style="width: 55%">
+                        <div id="inlineFilterContent" class="d-flex flex-wrap gap-3 align-items-start p-3 rounded shadow-sm bg-white">
+                        </div>
+                      </div>
                     </div>
                 </div>
 
-                <div class="card shadow-sm border-0 mt-4 bg-accent bg-opacity-25">
-                    <div class="card-body">
-                        <h6 class="text-uppercase fw-bold small">Current Stats</h6>
-                        <p class="h3 mb-0">{{ avg_hindex if avg_hindex else '--'}}</p>
-                        <small>Average h-index in view</small>
-                    </div>
-                </div>
             </div>
 
             <div class="col-md-8">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body d-flex flex-column align-items-center justify-content-center bg-light" style="min-height: 400px; border: 2px dashed #ccc;">
-                        <div id="cy" style="width: 100%; height: 500px;"></div>
+                        <div id="graph-container" style="width: 100%; height: 500px;" class="border rounded mt-3"></div>
                     </div>
                 </div>
             </div>
@@ -359,5 +368,5 @@
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
-</body>
+  </body>
 </html>
