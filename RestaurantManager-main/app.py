@@ -122,7 +122,7 @@ def index():
         if course:
             conditions.append("d.course_type = %s")
             params.append(course)
-        if max_price != '0':
+        if max_price and max_price != '0':
             conditions.append("d.price <= %s")
             params.append(max_price)
         if seasonal:
