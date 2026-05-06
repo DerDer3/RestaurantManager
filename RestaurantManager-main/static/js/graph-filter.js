@@ -1,6 +1,4 @@
-let selectedCardId = null;
-let selectedCardType = null;
-let selectedRelationship = null;
+let selected = { id: null, type: null, relationship: null };
 
 const relationshipConfigs = {
     chefs: [
@@ -18,23 +16,36 @@ const relationshipConfigs = {
     ],
 };
 
-function selectCard(el) {
+function select(type, id) {
+    selected.id = id;
+    selected.type = type;
+    selected.relationship = null;
+
+    // cards
     document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
+    const card = document.querySelector(`.selectable-card[data-type="${type}"][data-id="${id}"]`);
+    if (card) card.classList.add('selected');
 
-    selectedCardId = el.dataset.id;
-    selectedCardType = el.dataset.type;
-    selectedRelationship = null;
+    // graph nodes
+    if (window.cy) {
+        window.cy.nodes().removeClass('selected-node');
+        const prefix = type === 'chefs' ? 'c' : type === 'restaurants' ? 'r' : 'd';
+        window.cy.$(`#${prefix}${id}`).addClass('selected-node');
+    }
 
-    fetch(`/api/entity/${selectedCardType}/${selectedCardId}`)
+    fetch(`/api/entity/${type}/${id}`)
         .then(res => res.text())
         .then(html => { document.getElementById('entity-detail').innerHTML = html; });
 
-    fetch(`/api/entity_title/${selectedCardType}/${selectedCardId}`)
+    fetch(`/api/entity_title/${type}/${id}`)
         .then(res => res.text())
         .then(html => { document.getElementById('entity-title').innerHTML = html; });
 
-    buildRelationshipSelector(selectedCardType);
+    buildRelationshipSelector(type);
+}
+
+function selectCard(el) {
+    select(el.dataset.type, el.dataset.id);
 }
 
 function buildRelationshipSelector(type) {
@@ -49,7 +60,6 @@ function buildRelationshipSelector(type) {
 
     content.innerHTML = "";
     wrapper.classList.remove("d-none");
-
 
     config.forEach(rel => {
         const btn = document.createElement("button");
@@ -66,13 +76,14 @@ function buildRelationshipSelector(type) {
             this.classList.add("btn-primary");
             this.classList.remove("btn-outline-secondary");
 
-            selectedRelationship = this.dataset.value;
-            fetchGraph(selectedCardType, selectedCardId, selectedRelationship);
+            selected.relationship = this.dataset.value;
+            fetchGraph(selected.type, selected.id, selected.relationship);
         });
 
         content.appendChild(btn);
     });
 }
+
 function fetchGraph(type, id, relationship) {
     const url = `/api/graph/${type}/${id}/${relationship}`;
     console.log("fetching:", url);
@@ -122,6 +133,14 @@ function renderGraph(data) {
                 }
             },
             {
+                selector: "node.selected-node",
+                style: {
+                    "border-width": 3,
+                    "border-color": "#ffc107",
+                    "border-opacity": 1,
+                }
+            },
+            {
                 selector: "edge",
                 style: {
                     "width": 2,
@@ -137,5 +156,18 @@ function renderGraph(data) {
             }
         ],
         layout: { name: "cose", padding: 30 }
+    });
+
+    window.cy.on('tap', 'node', function(evt) {
+        const node = evt.target;
+        const id = node.data('id').slice(1);
+        const prefix = node.data('id').slice(0, 1);
+
+        let type;
+        if (prefix === 'c') type = 'chefs';
+        else if (prefix === 'r') type = 'restaurants';
+        else if (prefix === 'd') type = 'dishes';
+
+        select(type, id);
     });
 }
