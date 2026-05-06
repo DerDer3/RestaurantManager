@@ -113,6 +113,7 @@ function renderGraph(data) {
     window.cy = cytoscape({
         minZoom: 0.5,
         maxZoom: 2,
+        userPanningEnabled: false,
         container: container,
         elements: data.elements,
         style: [
