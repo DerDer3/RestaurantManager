@@ -92,6 +92,43 @@ tables = [
         password    VARCHAR(255) NOT NULL
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS Trained (
+        mentor_id  INT NOT NULL,
+        mentee_id  INT NOT NULL,
+        PRIMARY KEY (mentor_id, mentee_id),
+        FOREIGN KEY (mentor_id) REFERENCES Chef(id),
+        FOREIGN KEY (mentor_id) REFERENCES Chef(id),
+        CHECK (mentor_id != mentee_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS FavoriteRestaurant (
+        user_id INT NOT NULL,
+        restaurant_id INT NOT NULL,
+        PRIMARY KEY (restaurant_id, user_id),
+        FOREIGN KEY (restaurant_id) REFERENCES Restaurant(id),
+        FOREIGN KEY (user_id) REFERENCES User(id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS FavoriteChef (
+        user_id INT NOT NULL,
+        chef_id INT NOT NULL,
+        PRIMARY KEY (chef_id, user_id),
+        FOREIGN KEY (chef_id) REFERENCES Chef(id),
+        FOREIGN KEY (user_id) REFERENCES User(id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS FavoriteDish (
+        user_id INT NOT NULL,
+        dish_id INT NOT NULL,
+        PRIMARY KEY (dish_id, user_id),
+        FOREIGN KEY (dish_id) REFERENCES Dish(id),
+        FOREIGN KEY (user_id) REFERENCES User(id)
+    )
+    """,
 ]
 
 for table in tables:

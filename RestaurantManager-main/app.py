@@ -267,7 +267,7 @@ def get_graph(type, id, relationship):
         # get center node first
         cursor.execute("SELECT name FROM Restaurant WHERE id = %s", (id,))
         center = cursor.fetchone()
-        elements.append({"data": {"id": f"c{id}", "label": f"{center['name']}", "type": "center"}})
+        elements.append({"data": {"id": f"r{id}", "label": f"{center['name']}", "type": "center"}})
 
         # then get related nodes
         cursor.execute("""
@@ -276,9 +276,24 @@ def get_graph(type, id, relationship):
             WHERE wa.restaurant_id = %s
         """, (id,))
         for row in cursor.fetchall():
-            elements.append({"data": {"id": f"r{row['id']}", "label": f"{row['first_name']} {row['last_name']}"}})
-            elements.append({"data": {"source": f"c{id}", "target": f"r{row['id']}", "label": "works at"}})
-        # add other type/relationship combos here
+            elements.append({"data": {"id": f"c{row['id']}", "label": f"{row['first_name']} {row['last_name']}"}})
+            elements.append({"data": {"source": f"r{id}", "target": f"c{row['id']}", "label": "works at"}})
+
+    if type == "restaurants" and relationship == "dishes":
+        # get center node first
+        cursor.execute("SELECT name FROM Restaurant WHERE id = %s", (id,))
+        center = cursor.fetchone()
+        elements.append({"data": {"id": f"r{id}", "label": f"{center['name']}", "type": "center"}})
+
+        # then get related nodes
+        cursor.execute("""
+            SELECT d.id, d.name FROM Dish d
+            JOIN Serves s ON d.id = s.dish_id
+            WHERE s.restaurant_id = %s
+        """, (id,))
+        for row in cursor.fetchall():
+            elements.append({"data": {"id": f"d{row['id']}", "label": f"{row['name']}"}})
+            elements.append({"data": {"source": f"r{id}", "target": f"d{row['id']}", "label": "serves"}})
 
     return jsonify({"elements": elements})
 
