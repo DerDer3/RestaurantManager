@@ -13,8 +13,9 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 # Create and select the database
-cursor.execute(f"CREATE DATABASE IF NOT EXISTS {os.getenv("DB_NAME")}")
-cursor.execute(f"USE {os.getenv("DB_NAME")}")
+db_name = os.getenv("DB_NAME")
+cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
+cursor.execute(f"USE {db_name}")
 
 tables = [
     """

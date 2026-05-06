@@ -298,8 +298,8 @@ def signup():
                 (username, email, hashed)
             )
             db.commit()
-            flash("Account created! You can now login")
-            return redirect(url_for("index"))
+            flash("Account created! You can now log in.")
+            return redirect(url_for("login"))
         except Exception as e:
             flash("Email already in use")
             return redirect(url_for("signup"))

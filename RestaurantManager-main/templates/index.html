@@ -57,6 +57,19 @@
         </div>
     </nav>
 
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="container mt-3">
+          {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <main class="container my-5">
         <div class="row mb-4">
             <div class="col-12 text-center">
