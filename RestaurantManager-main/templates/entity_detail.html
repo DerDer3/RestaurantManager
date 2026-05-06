@@ -1,0 +1,35 @@
+<div class="card-body">
+    {% for i in info %}
+        <div class="row">
+            {% if selection_type == "restaurants" %}
+                <div class="col-md-6">
+                    <h1>{{ i.name }}</h1>
+                    <h2>{{ i.cuisine_type }}</h2>
+                    <p>{{ i.rating }}</p>
+                    <p>{{ i.michelin_stars }}<p>
+                    <h3>{{ i.price_range }}</h3>
+                </div>
+                <div class="col-md-6">
+                    <h1>&nbsp;</h1>
+                    <p>{{ i.address }}, {{ i.city }} {{ i.state }}</p>
+                    <p>{{ i.phone }}</p>
+                    <p>{{ i.website }}</p>
+                </div>
+            {% elif selection_type == "chefs" %}
+                <div class="col-md-6">
+                    <h1>{{ i.first_name }} {{ i.last_name }}</h1>
+                    <p>{{ i.title }} — {{ i.specialty }}</p>
+                    <p>{{ i.exp}} Years</p>
+                </div>
+                <div class="col-md-6">
+                    <p>{{ i.bio }}</p>
+                </div>
+            {% elif selection_type == "dishes" %}
+                <h1>{{ i.name }}</h1>
+                <h2>{{ i.course_type }}</h2>
+                <p>{{ i.description }}</p>
+                <p>${{ i.price }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

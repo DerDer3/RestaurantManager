@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <title>Restaurant DB</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    <style>
+        .selectable-card {
+          cursor: pointer;
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .selectable-card.selected {
+          border: 1.5px solid #0d6efd !important;
+          box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+        }
+    </style>
+</head>
+
+<script src="{{ url_for('static', filename='js/graph-filter.js') }}"></script>
+
+
+
+<body class="bg-background">
+    <nav class="navbar navbar-expand-lg custom-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/">ChefBase</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="#">Map</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                    </li>
+                    {% if session.user_id %}
+                        <span class="navbar-text me-3">
+                            👤 {{ session.user_name }}
+                        </span>
+                        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+                    {% else %}
+                        <a href="/login" class="btn btn-outline-primary btn-sm me-2">Log In</a>
+                        <a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>
+                    {% endif %}
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="container mt-3">
+          {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="container my-5">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-4">ChefBase</h1>
+                <p class="lead text-muted">Discover connections between chefs, dishes, and top-rated restaurants.</p>
+            </div>
+            <form class="d-flex mx-auto align-items-center gap-2" style="width: 55%" action="/" method="GET" data-search-type="{{ search_type }}">
+                <input type="hidden" name="search_by" id="searchByValue" value="{{ search_type }}">
+
+                <!-- Category dropdown -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-nowrap" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="searchByLabel">
+                        {{ search_type | capitalize }}
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-sm">
+                        <li><a class="dropdown-item" href="#" data-value="location">Location</a></li>
+                        <li><a class="dropdown-item" href="#" data-value="restaurants">Restaurants</a></li>
+                        <li><a class="dropdown-item" href="#" data-value="chefs">Chefs</a></li>
+                        <li><a class="dropdown-item" href="#" data-value="dishes">Dishes</a></li>
+                    </ul>
+                </div>
+
+                <input class="form-control border-0 shadow-sm" type="search" name="q"
+                      value="{{ query }}" placeholder="Search Chef, Dish, Location..." aria-label="Search"/>
+
+                <!-- Filter trigger button -->
+                <button type="button" class="btn btn-outline-secondary text-nowrap" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="bi bi-sliders"></i> Filters <span id="filterBadge" class="badge bg-primary ms-1 d-none">0</span>
+                </button>
+
+                <button class="btn btn-primary text-nowrap" type="submit">Search</button>
+            </form>
+        </div>
+
+        <!-- Filter Modal -->
+        <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-semibold" id="filterModalLabel">Filters</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body pt-2" id="filterModalBody">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div class="modal-footer border-0 d-flex justify-content-between">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none" id="clearFiltersBtn">Clear all</button>
+                        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Modal -->
+        <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-semibold" id="filterModalLabel">Filters</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body pt-2" id="filterModalBody">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div class="modal-footer border-0 d-flex justify-content-between">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none" id="clearFiltersBtn">Clear all</button>
+                        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script src="{{ url_for('static', filename='js/filter.js') }}" defer></script>
+
+        <div class="row g-4">
+            <div class="card-body">
+                {% if results %}
+                    {% if search_type == "restaurants"%}
+                        <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                            {% for r in results %}
+                                <div class="col">
+                                    <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ r.name }}</h5>
+                                            <p class="text-muted mb-1">{{ r.address }}, {{r.city}} {{r.state}}</p>
+                                            <p class="text-muted mb-1">{{ r.price_range }}</p>
+                                            <span class="badge bg-primary">⭐ {{ r.rating }} Rating</span>
+                                            <span class="badge bg-primary">⭐ {{ r.michelin_stars }} Michelin stars</span>
+
+                                            {% if r.chefs %}
+                                            <h6 class="mt-3">Chefs</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
+                                                <tbody>
+                                                    {% for chef in r.chefs %}
+                                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+
+                                            {% if r.dishes %}
+                                            <h6 class="mt-3">Dishes</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
+                                                <tbody>
+                                                    {% for dish in r.dishes %}
+                                                    <tr>
+                                                        <td>{{ dish.name }}</td>
+                                                        <td>${{ "%.2f"|format(dish.price) }}</td>
+                                                        <td>{{ dish.avg_rating }}/5</td>
+                                                        <td>{{ dish.calorie_count }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% elif search_type == "location"%}
+                        <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                            {% for r in results %}
+                                <div class="col">
+              <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ r.name }}</h5>
+                                            <p class="text-muted mb-1">{{ r.address }}, {{r.city}} {{r.state}}</p>
+                                            <p class="text-muted mb-1">{{ r.price_range }}</p>
+                                            <span class="badge bg-primary">⭐ {{ r.rating }} Rating</span>
+                                            <span class="badge bg-primary">⭐ {{ r.michelin_stars }} Michelin stars</span>
+
+                                            {% if r.chefs %}
+                                            <h6 class="mt-3">Chefs</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
+                                                <tbody>
+                                                    {% for chef in r.chefs %}
+                                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+
+                                            {% if r.dishes %}
+                                            <h6 class="mt-3">Dishes</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
+                                                <tbody>
+                                                    {% for dish in r.dishes %}
+                                                    <tr>
+                                                        <td>{{ dish.name }}</td>
+                                                        <td>${{ "%.2f"|format(dish.price) }}</td>
+                                                        <td>{{ dish.avg_rating }}/5</td>
+                                                        <td>{{ dish.calorie_count }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% elif search_type == "chefs"%}
+                        <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                            {% for r in results %}
+                                <div class="col">
+              <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
+                                        <div class="card-body text-center">
+                                          <h5 class="card-title">{{ r.first_name }} {{r.last_name}}</h5>
+                                          <p class="text-muted mb-1">{{ r.title }}</p>
+                                          <p class="text-muted mb-1">{{ r.specialty }}</p>
+
+                                            {% if r.chefs %}
+                                            <h6 class="mt-3">Chefs</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
+                                                <tbody>
+                                                    {% for chef in r.chefs %}
+                                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+
+                                            {% if r.dishes %}
+                                            <h6 class="mt-3">Dishes</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
+                                                <tbody>
+                                                    {% for dish in r.dishes %}
+                                                    <tr>
+                                                        <td>{{ dish.name }}</td>
+                                                        <td>${{ "%.2f"|format(dish.price) }}</td>
+                                                        <td>{{ dish.avg_rating }}/5</td>
+                                                        <td>{{ dish.calorie_count }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                      {% elif search_type == "dishes"%}
+                        <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                            {% for r in results %}
+                                <div class="col">
+              <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
+                                        <div class="card-body text-center">
+                                          <h5 class="card-title">{{ r.name }}</h5>
+                                          <p class="text-muted mb-1">{{ r.description }}</p>
+                                          <p class="text-muted mb-1">{{ r.specialty }}</p>
+                                          <span class="badge bg-primary">${{ r.price }}</span>
+
+                                            {% if r.chefs %}
+                                            <h6 class="mt-3">Chefs</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Specialty</th><th>Experience</th></tr></thead>
+                                                <tbody>
+                                                    {% for chef in r.chefs %}
+                                                    <tr><td>{{ chef.name }}</td><td>{{ chef.specialty }}</td><td>{{ chef.exp }} yrs</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+
+                                            {% if r.dishes %}
+                                            <h6 class="mt-3">Dishes</h6>
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Name</th><th>Price</th><th>Rating</th><th>Calories</th></tr></thead>
+                                                <tbody>
+                                                    {% for dish in r.dishes %}
+                                                    <tr>
+                                                        <td>{{ dish.name }}</td>
+                                                        <td>${{ "%.2f"|format(dish.price) }}</td>
+                                                        <td>{{ dish.avg_rating }}/5</td>
+                                                        <td>{{ dish.calorie_count }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    {% endif %}
+                {% elif search_type %}
+                    <p class="text-muted text-center mt-5">No results found.</p>
+                {% else %}
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 400px;">
+                        <i class="bi bi-search mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                        <h4 class="text-muted">Search to get started</h4>
+                        <p class="text-muted">Try searching a chef name or location.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div id="entity-detail"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title">Search & Filter</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Selected:</label>
+                            </div>
+                  <div class="col-12">
+                      <div class="card shadow-sm border-0">
+                          <div class="card-body">
+                              <div id="entity-title"></div>
+                          </div>
+                      </div>
+                  </div>                 
+                      <div id="inlineFilters" class="mx-auto mt-3 d-none" style="width: 55%">
+                        <div id="inlineFilterContent" class="d-flex flex-wrap gap-3 align-items-start p-3 rounded shadow-sm bg-white">
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center bg-light" style="min-height: 400px; border: 2px dashed #ccc;">
+                        <div id="graph-container" style="width: 100%; height: 500px;" class="border rounded mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="container text-center py-5 mt-5 border-top">
+        <p class="text-muted small">&copy; 2026 Chefbase</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  </body>
+</html>

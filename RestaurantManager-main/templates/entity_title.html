@@ -1,0 +1,11 @@
+<div class="card-body">
+    {% for i in info %}
+        {% if selection_type == "restaurants" %}
+            <h4 class="card-title">{{ i.name }}</h4>
+        {% elif selection_type == "chefs" %}
+            <h4 class="card-title">{{ i.first_name }} {{ i.last_name }}</h4>
+        {% elif selection_type == "dishes" %}
+            <h4 class="card-title">{{ i.name }}</h4>
+        {% endif %}
+    {% endfor %}
+</div>
