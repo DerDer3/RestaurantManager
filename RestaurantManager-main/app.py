@@ -295,6 +295,70 @@ def get_graph(type, id, relationship):
             elements.append({"data": {"id": f"d{row['id']}", "label": f"{row['name']}"}})
             elements.append({"data": {"source": f"r{id}", "target": f"d{row['id']}", "label": "serves"}})
 
+    if type == "chefs" and relationship == "trained":
+        # get center node first
+        cursor.execute("SELECT first_name, last_name FROM Chef WHERE id = %s", (id,))
+        center = cursor.fetchone()
+        elements.append({"data": {"id": f"c{id}", "label": f"{center['first_name']} {center['last_name']}", "type": "center"}})
+
+        # then get related nodes
+        cursor.execute("""
+            SELECT c.id, c.first_name, c.last_name FROM Chef c
+            JOIN Trained t ON c.id = t.mentee_id
+            WHERE t.mentor_id = %s
+        """, (id,))
+        for row in cursor.fetchall():
+            elements.append({"data": {"id": f"c{row['id']}", "label": f"{row['first_name']} {row['last_name']}"}})
+            elements.append({"data": {"source": f"c{id}", "target": f"c{row['id']}", "label": "trained"}})
+
+    if type == "chefs" and relationship == "dishes":
+        # get center node first
+        cursor.execute("SELECT first_name, last_name FROM Chef WHERE id = %s", (id,))
+        center = cursor.fetchone()
+        elements.append({"data": {"id": f"c{id}", "label": f"{center['first_name']} {center['last_name']}", "type": "center"}})
+
+        # then get related nodes
+        cursor.execute("""
+            SELECT d.id, d.name FROM Dish d
+            JOIN Creates m ON d.id = m.dish_id
+            WHERE m.chef_id = %s
+        """, (id,))
+        for row in cursor.fetchall():
+            elements.append({"data": {"id": f"d{row['id']}", "label": row['name']}})
+            elements.append({"data": {"source": f"c{id}", "target": f"d{row['id']}", "label": "creates"}})
+
+    if type == "dishes" and relationship == "chefs":
+        # get center node first
+        cursor.execute("SELECT name FROM Dish WHERE id = %s", (id,))
+        center = cursor.fetchone()
+        elements.append({"data": {"id": f"d{id}", "label": f"{center['name']}", "type": "center"}})
+
+        # then get related nodes
+        cursor.execute("""
+            SELECT c.id, c.first_name, c.last_name FROM Chef c
+            JOIN Creates m ON c.id = m.chef_id
+            WHERE m.dish_id = %s
+        """, (id,))
+        for row in cursor.fetchall():
+            elements.append({"data": {"id": f"c{row['id']}", "label": f"{row['first_name']} {row['last_name']}"}})
+            elements.append({"data": {"source": f"d{id}", "target": f"c{row['id']}", "label": "creates"}})
+
+    if type == "dishes" and relationship == "restaurants":
+        # get center node first
+        cursor.execute("SELECT name FROM Dish WHERE id = %s", (id,))
+        center = cursor.fetchone()
+        elements.append({"data": {"id": f"d{id}", "label": f"{center['name']}", "type": "center"}})
+
+        # then get related nodes
+        cursor.execute("""
+            SELECT r.id, r.name FROM Restaurant r
+            JOIN Serves s ON r.id = s.restaurant_id
+            WHERE s.dish_id = %s
+        """, (id,))
+        for row in cursor.fetchall():
+            elements.append({"data": {"id": f"r{row['id']}", "label": row["name"]}})
+            elements.append({"data": {"source": f"d{id}", "target": f"r{row['id']}", "label": "serves"}})
+
     return jsonify({"elements": elements})
 
 @app.route("/signup", methods=["GET", "POST"])

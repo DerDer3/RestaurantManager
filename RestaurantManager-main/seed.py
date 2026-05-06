@@ -84,6 +84,10 @@ cursor.executemany(
 )
 
 creates = [(random.randint(1,CHEF_RANGE), random.randint(1,DISH_RANGE)) for _ in range(250)]
+cursor.executemany(
+    "INSERT IGNORE INTO Creates (chef_id, dish_id) VALUES (%s, %s)",
+    trained
+)
 
 conn.commit()
 conn.close()
