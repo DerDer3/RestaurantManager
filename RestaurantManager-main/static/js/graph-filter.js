@@ -1,5 +1,16 @@
 let selected = { id: null, type: null, relationship: null };
 
+const svgIcon = (path) =>
+    `data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="white" d="${path}"/></svg>`
+    )}`;
+
+const NODE_ICONS = {
+    chefs:       svgIcon("M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"),
+    restaurants: svgIcon("M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"),
+    dishes:      svgIcon("M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"),
+};
+
 const relationshipConfigs = {
     chefs: [
         { label: "Chefs Trained",       value: "trained",     icon: "bi-people" },
@@ -86,16 +97,9 @@ function buildRelationshipSelector(type) {
 
 function fetchGraph(type, id, relationship) {
     const url = `/api/graph/${type}/${id}/${relationship}`;
-    console.log("fetching:", url);
     fetch(url)
-        .then(res => {
-            console.log("status:", res.status);
-            return res.text();
-        })
-        .then(text => {
-            console.log("raw:", text);
-            return JSON.parse(text);
-        })
+        .then(res => res.text())
+        .then(text => JSON.parse(text))
         .then(data => renderGraph(data))
         .catch(err => console.error("error:", err));
 }
@@ -113,29 +117,64 @@ function renderGraph(data) {
             {
                 selector: "node",
                 style: {
-                    "background-color": "#0d6efd",
                     "label": "data(label)",
-                    "color": "#fff",
-                    "text-valign": "center",
+                    "text-valign": "bottom",
+                    "text-margin-y": 8,
                     "text-halign": "center",
                     "font-size": "11px",
+                    "color": "#333",
                     "width": "60px",
                     "height": "60px",
                 }
             },
             {
+                selector: "node[nodeType='chefs']",
+                style: {
+                    "background-color": "#10b981",
+                    "shape": "ellipse",
+                    "background-image": NODE_ICONS.chefs,
+                    "background-fit": "contain",
+                    "background-width": "55%",
+                    "background-height": "55%",
+                }
+            },
+            {
+                selector: "node[nodeType='restaurants']",
+                style: {
+                    "background-color": "#0ea5e9",
+                    "shape": "round-rectangle",
+                    "background-image": NODE_ICONS.restaurants,
+                    "background-fit": "contain",
+                    "background-width": "55%",
+                    "background-height": "55%",
+                }
+            },
+            {
+                selector: "node[nodeType='dishes']",
+                style: {
+                    "background-color": "#f97316",
+                    "shape": "diamond",
+                    "background-image": NODE_ICONS.dishes,
+                    "background-fit": "contain",
+                    "background-width": "50%",
+                    "background-height": "50%",
+                }
+            },
+            {
                 selector: "node[type='center']",
                 style: {
-                    "background-color": "#dc3545",
                     "width": "80px",
                     "height": "80px",
                     "font-size": "13px",
+                    "border-width": 4,
+                    "border-color": "#fff",
+                    "border-opacity": 0.9,
                 }
             },
             {
                 selector: "node.selected-node",
                 style: {
-                    "border-width": 3,
+                    "border-width": 4,
                     "border-color": "#ffc107",
                     "border-opacity": 1,
                 }
@@ -148,14 +187,17 @@ function renderGraph(data) {
                     "target-arrow-color": "#adb5bd",
                     "target-arrow-shape": "triangle",
                     "curve-style": "bezier",
-                    "label": "data(label)",
-                    "font-size": "9px",
-                    "text-rotation": "autorotate",
-                    "color": "#6c757d",
+                }
+            },
+            {
+                selector: "edge.hovered",
+                style: {
+                    "line-color": "#6c757d",
+                    "width": 3,
                 }
             }
         ],
-        layout: { name: "cose", padding: 30 }
+        layout: { name: "concentric", padding: 30, animate: true, animationDuration: 400, minNodeSpacing: 80 }
     });
 
     window.cy.on('tap', 'node', function(evt) {
@@ -169,5 +211,24 @@ function renderGraph(data) {
         else if (prefix === 'd') type = 'dishes';
 
         select(type, id);
+    });
+
+    window.cy.on('mouseover', 'edge', function(evt) {
+        evt.target.addClass('hovered');
+        const tooltip = document.getElementById('cy-tooltip');
+        tooltip.textContent = evt.target.data('label');
+        tooltip.style.display = 'block';
+    });
+
+    window.cy.on('mousemove', 'edge', function(evt) {
+        const e = evt.originalEvent;
+        const tooltip = document.getElementById('cy-tooltip');
+        tooltip.style.left = (e.clientX + 14) + 'px';
+        tooltip.style.top  = (e.clientY - 32) + 'px';
+    });
+
+    window.cy.on('mouseout', 'edge', function(evt) {
+        evt.target.removeClass('hovered');
+        document.getElementById('cy-tooltip').style.display = 'none';
     });
 }
