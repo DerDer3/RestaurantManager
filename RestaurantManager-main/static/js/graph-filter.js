@@ -111,6 +111,8 @@ function renderGraph(data) {
     if (window.cy) window.cy.destroy();
 
     window.cy = cytoscape({
+        userZoomingEnabled: false,
+        userPanningEnabled: false,
         container: container,
         elements: data.elements,
         style: [
