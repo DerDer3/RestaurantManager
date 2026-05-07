@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from db import get_db, close_db
+from user_page import user_page_bp
 
 import bcrypt
 
 app = Flask(__name__)
 app.secret_key = "password"
 app.teardown_appcontext(close_db)
+app.register_blueprint(user_page_bp)
 
 @app.route("/")
 def index():
@@ -50,8 +52,9 @@ def index():
                     """
                 
                 if query:
-                    conditions.append("CONCAT(r.address, ', ', r.city, ' ', r.state) LIKE %s")
+                    conditions.append("CONCAT(r.address, ', ', r.city, ' ', r.state) LIKE %s OR r.id = %s")
                     params.append(f"%{query}%")
+                    params.append(query)
 
             case "restaurants":
                 print(f"Restaurant query {query}")
@@ -61,8 +64,9 @@ def index():
                     """
 
                 if query:
-                    conditions.append("r.name LIKE %s ") 
-                    params.append(f"%{query}%",)
+                    conditions.append("r.name LIKE %s OR r.id = %s") 
+                    params.append(f"%{query}%")
+                    params.append(query)
 
 
             case "chefs":
@@ -74,8 +78,9 @@ def index():
                     
                 if query:
                     conditions.append("""CONCAT(c.first_name, ' ', c.last_name) 
-                    LIKE %s """) 
+                    LIKE %s OR c.id = %s""") 
                     params.append(f"%{query}%")
+                    params.append(query)
 
             case "dishes":
                 print(f"Dish query {query}")
@@ -85,8 +90,9 @@ def index():
                     """
 
                 if query:
-                    conditions.append("d.name LIKE %s")
+                    conditions.append("d.name LIKE %s OR d.id = %s")
                     params.append(f"%{query}%")
+                    params.append(query)
             case _:
                 pass
 
@@ -392,3 +398,9 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+@app.route('/user_page')
+def profile():
+    return redirect(url_for('user_page'))
+
+

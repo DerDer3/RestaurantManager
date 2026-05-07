@@ -30,6 +30,7 @@ const relationshipConfigs = {
 function select(type, id) {
     selected.id = id;
     selected.type = type;
+    // window.location.href = `/`;
     selected.relationship = null;
 
     // cards
