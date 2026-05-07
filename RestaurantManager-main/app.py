@@ -418,8 +418,3 @@ def logout():
 if __name__ == "__main__":
     app.run(debug=True)
 
-@app.route('/user_page')
-def profile():
-    return redirect(url_for('user_page'))
-
-

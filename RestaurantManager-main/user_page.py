@@ -6,6 +6,9 @@ user_page_bp = Blueprint('user_page', __name__)
 @user_page_bp.route('/user_page')
 def user_page():
 
+    if not session.get('user_id'):
+        return redirect(url_for('signup'))
+
     user_id = session["user_id"]
     print(user_id)
 
