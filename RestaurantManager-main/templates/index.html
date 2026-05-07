@@ -167,7 +167,7 @@
                         <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
                             {% for r in results %}
                                 <div class="col">
-                                    <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="{{ search_type }}" data-id="{{ r.id }}" onclick="selectCard(this)">
+                                    <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="restaurants" data-id="{{ r.id }}" onclick="selectCard(this)">
                                         <div class="card-body text-center">
                                             <h5 class="card-title">{{ r.name }}</h5>
                                             <p class="text-muted mb-1">{{ r.address }}, {{r.city}} {{r.state}}</p>
@@ -252,7 +252,7 @@
 
             <div class="col-12">
                 <div class="card shadow-sm border-0">
-                    <div id="entity-detail"></div>
+            <div id="entity-detail" data-favorited="{{ is_favorited }}"></div>
                 </div>
             </div>
 

@@ -8,11 +8,6 @@
 </head>
 
 <script src="{{ url_for('static', filename='js/graph-filter.js') }}"></script>
-<script>
-    function selectFavorite(el) {
-        window.location.href = `/?search_by=${el.dataset.type}&q=${el.dataset.id}`;
-    }
-</script>
 
 <body class="bg-background">
     <nav class="navbar navbar-expand-lg custom-navbar">

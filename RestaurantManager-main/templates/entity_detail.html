@@ -14,6 +14,7 @@
                     <p>{{ i.address }}, {{ i.city }} {{ i.state }}</p>
                     <p>{{ i.phone }}</p>
                     <p>{{ i.website }}</p>
+                    <button id="fav-btn" data-id="{{ i.id }}" data-type="restaurants" onclick="toggleFavorite()">{{ '★ Unfavorite' if is_favorited else '☆ Favorite' }}</button>
                 </div>
             {% elif selection_type == "chefs" %}
                 <div class="col-md-6">
@@ -23,12 +24,18 @@
                 </div>
                 <div class="col-md-6">
                     <p>{{ i.bio }}</p>
+                    <button id="fav-btn" data-id="{{ i.id }}" data-type="chefs" onclick="toggleFavorite()">{{ '★ Unfavorite' if is_favorited else '☆ Favorite' }}</button>
                 </div>
             {% elif selection_type == "dishes" %}
-                <h1>{{ i.name }}</h1>
-                <h2>{{ i.course_type }}</h2>
-                <p>{{ i.description }}</p>
-                <p>${{ i.price }}</p>
+                <div class="col-md-6">
+                    <h1>{{ i.name }}</h1>
+                    <h2>{{ i.course_type }}</h2>
+                    <p>{{ i.description }}</p>
+                    <p>${{ i.price }}</p>
+                </div>
+                <div class="col-md-6">
+                    <button id="fav-btn" data-id="{{ i.id }}" data-type="dishes" onclick="toggleFavorite()">{{ '★ Unfavorite' if is_favorited else '☆ Favorite' }}</button>
+                </div>
             {% endif %}
         </div>
     {% endfor %}

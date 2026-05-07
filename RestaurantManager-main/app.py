@@ -152,13 +152,22 @@ def index():
 def get_selection(entity_type, entity_id):
     print(entity_type)
     print(entity_id)
+    
+    cursor = get_db().cursor(dictionary=True)
 
     info = None
+
+    is_favorited = False
+    
+    if session.get('user_id'):
+        table = {'chefs': 'FavoriteChef', 'restaurants': 'FavoriteRestaurant', 'dishes': 'FavoriteDish'}[entity_type]
+        id_col = {'chefs': 'chef_id', 'restaurants': 'restaurant_id', 'dishes': 'dish_id'}[entity_type]
+        cursor.execute(f"SELECT 1 FROM {table} WHERE user_id = %s AND {id_col} = %s", (session['user_id'], entity_id))
+        is_favorited = cursor.fetchone() is not None
     
     if entity_type:
         match entity_type:
             case "location":
-                cursor = get_db().cursor(dictionary=True)
                 cursor.execute("""
                     SELECT DISTINCT *
                     FROM Restaurant r
@@ -168,7 +177,6 @@ def get_selection(entity_type, entity_id):
                 entity_type = "restaurants"
 
             case "restaurants":
-                cursor = get_db().cursor(dictionary=True)
                 cursor.execute("""
                     SELECT DISTINCT *
                     FROM Restaurant r
@@ -177,7 +185,6 @@ def get_selection(entity_type, entity_id):
                 info = cursor.fetchall()
 
             case "chefs":
-                cursor = get_db().cursor(dictionary=True)
                 cursor.execute("""
                     SELECT DISTINCT *
                     FROM Chef c
@@ -186,7 +193,6 @@ def get_selection(entity_type, entity_id):
                 info = cursor.fetchall()
 
             case "dishes":
-                cursor = get_db().cursor(dictionary=True)
                 cursor.execute("""
                     SELECT DISTINCT *
                     FROM Dish d
@@ -196,7 +202,7 @@ def get_selection(entity_type, entity_id):
 
     print(info)
     print(entity_type)
-    return render_template("entity_detail.html", info=info, selection_type=entity_type)
+    return render_template("entity_detail.html", info=info, selection_type=entity_type, is_favorited=is_favorited)
 
 @app.route("/api/entity_title/<string:entity_type>/<int:entity_id>")
 def get_selection_title(entity_type, entity_id):
@@ -207,16 +213,6 @@ def get_selection_title(entity_type, entity_id):
     
     if entity_type:
         match entity_type:
-            case "location":
-                cursor = get_db().cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT DISTINCT *
-                    FROM Restaurant r
-                    WHERE r.id = %s 
-                """, (entity_id,))
-                info = cursor.fetchall()
-                entity_type = "restaurants"
-
             case "restaurants":
                 cursor = get_db().cursor(dictionary=True)
                 cursor.execute("""
@@ -225,6 +221,8 @@ def get_selection_title(entity_type, entity_id):
                     WHERE r.id = %s 
                 """, (entity_id,))
                 info = cursor.fetchall()
+
+                cursor.execute
 
             case "chefs":
                 cursor = get_db().cursor(dictionary=True)
@@ -345,6 +343,27 @@ def get_graph(type, id, relationship):
             elements.append({"data": {"source": f"d{id}", "target": f"r{row['id']}", "label": "serves"}})
 
     return jsonify({"elements": elements})
+
+@app.route("/api/favorite/<entity_type>/<int:entity_id>", methods=['POST'])
+def favorite(entity_type, entity_id):
+    if not session.get('user_id'):
+        return jsonify({'error': 'not logged in'}), 401
+
+    table = {'chefs': 'FavoriteChef', 'restaurants': 'FavoriteRestaurant', 'dishes': 'FavoriteDish'}[entity_type]
+    id_col = {'chefs': 'chef_id', 'restaurants': 'restaurant_id', 'dishes': 'dish_id'}[entity_type]
+
+    cursor = get_db().cursor(dictionary=True)
+    cursor.execute(f"SELECT 1 FROM {table} WHERE user_id = %s AND {id_col} = %s", (session['user_id'], entity_id))
+
+    if cursor.fetchone():
+        cursor.execute(f"DELETE FROM {table} WHERE user_id = %s AND {id_col} = %s", (session['user_id'], entity_id))
+        favorited = False
+    else:
+        cursor.execute(f"INSERT INTO {table} (user_id, {id_col}) VALUES (%s, %s)", (session['user_id'], entity_id))
+        favorited = True
+
+    get_db().commit()
+    return jsonify({'favorited': favorited})
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():

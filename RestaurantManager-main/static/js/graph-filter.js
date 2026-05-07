@@ -47,7 +47,14 @@ function select(type, id) {
 
     fetch(`/api/entity/${type}/${id}`)
         .then(res => res.text())
-        .then(html => { document.getElementById('entity-detail').innerHTML = html; });
+        .then(html => { document.getElementById('entity-detail').innerHTML = html; })
+        .then(data => {
+            const btn = document.getElementById('fav-btn');
+            btn.textContent = data.is_favorited ? '★ Unfavorite' : '☆ Favorite';
+            btn.dataset.favorited = data.is_favorited;
+            btn.dataset.id = id;
+            btn.dataset.type = type;
+        });
 
     fetch(`/api/entity_title/${type}/${id}`)
         .then(res => res.text())
@@ -58,6 +65,22 @@ function select(type, id) {
 
 function selectCard(el) {
     select(el.dataset.type, el.dataset.id);
+}
+
+function selectFavorite(el) {
+    window.location.href = `/?search_by=${el.dataset.type}&q=${el.dataset.id}`;
+}
+
+function toggleFavorite() {
+    const btn = document.getElementById('fav-btn');
+    const id = btn.dataset.id;
+    const type = btn.dataset.type;
+
+    fetch(`/api/favorite/${type}/${id}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            btn.textContent = data.favorited ? '★ Unfavorite' : '☆ Favorite';
+        });
 }
 
 function buildRelationshipSelector(type) {
