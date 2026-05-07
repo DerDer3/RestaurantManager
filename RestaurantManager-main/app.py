@@ -28,6 +28,7 @@ def index():
     radius = request.args.get("radius")
     min_experience = request.args.get("min_experience")
     max_price = request.args.get("max_price")
+    r_index = request.args.get("r_index")
 
     # Multi-select (checkboxes) — use getlist
     cuisine = request.args.getlist("cuisine")
@@ -133,7 +134,26 @@ def index():
             params.append(max_price)
         if seasonal:
             conditions.append("d.is_seasonal = 1")
-
+        if r_index:
+            sql += """
+            JOIN (
+                SELECT rr.chef_id, MAX(rr.rnk) AS h_index
+                FROM (
+                    SELECT wa.chef_id,
+                        r2.rating,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY wa.chef_id
+                            ORDER BY r2.rating DESC
+                        ) AS rnk
+                    FROM WorksAt wa
+                    JOIN Restaurant r2 ON wa.restaurant_id = r2.id
+                ) rr
+                WHERE rr.rating >= rr.rnk
+                GROUP BY rr.chef_id
+            ) hi ON c.id = hi.chef_id
+            """
+            conditions.append("hi.h_index >= %s")
+            params.append(int(r_index))
 
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)

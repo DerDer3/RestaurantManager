@@ -64,6 +64,14 @@ const filterConfigs = {
             label: "Michelin Starred",
             type: "toggle",
             param: "chef_michelin"
+        },        
+        {
+            id: "r_index",
+            label: "R Index",
+            type: "range",
+            min: 0, max: 5, step: 1,
+            unit: " Index",
+            param: "r_index"
         },
         {
             id: "active_since",
