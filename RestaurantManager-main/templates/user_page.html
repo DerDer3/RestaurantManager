@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <title>Restaurant DB</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<script src="{{ url_for('static', filename='js/graph-filter.js') }}"></script>
+<script>
+    function selectFavorite(el) {
+        window.location.href = `/?search_by=${el.dataset.type}&q=${el.dataset.id}`;
+    }
+</script>
+
+<body class="bg-background">
+    <nav class="navbar navbar-expand-lg custom-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/">ChefBase</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/user_page">Profile</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                    </li>
+                    {% if session.user_id %}
+                        <span class="navbar-text me-3">
+                            👤 {{ session.user_name }}
+                        </span>
+                        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+                    {% else %}
+                        <a href="/login" class="btn btn-outline-primary btn-sm me-2">Log In</a>
+                        <a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>
+                    {% endif %}
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-5">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-4">{{ session.user_name }}</h1>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="card-body">
+                <h4 class="display-6">Favorite Restaurants</h4>
+                <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                    {% for r in restaurants %}
+                        <div class="col">
+                            <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="restaurants" data-id="{{ r.id }}" onclick="selectFavorite(this)">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">{{ r.name }}</h5>
+                                    <p class="text-muted mb-1">{{ r.address }}, {{r.city}} {{r.state}}</p>
+                                    <p class="text-muted mb-1">{{ r.price_range }}</p>
+                                    <span class="badge bg-primary">⭐ {{ r.rating }} Rating</span>
+                                    <span class="badge bg-primary">⭐ {{ r.michelin_stars }} Michelin stars</span>
+
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="card-body">
+                <h4 class="display-6">Favorite Chefs</h4>
+                <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                    {% for r in chefs %}
+                        <div class="col">
+                            <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="chefs" data-id="{{ r.id }}" onclick="selectFavorite(this)">
+                                <div class="card-body text-center">
+                                  <h5 class="card-title">{{ r.first_name }} {{r.last_name}}</h5>
+                                  <p class="text-muted mb-1">{{ r.title }}</p>
+                                  <p class="text-muted mb-1">{{ r.specialty }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="card-body">
+                <h4 class="display-6">Favorite Dishes</h4>
+                <div class="row row-cols-1 row-cols-md-2 rows-cols-lg-3 g-3 mx-auto">
+                    {% for r in dishes %}
+                        <div class="col">
+                            <div class="card mb-3 border-0 shadow-sm selectable-card" data-type="dishes" data-id="{{ r.id }}" onclick="selectFavorite(this)">
+                                <div class="card-body text-center">
+                                  <h5 class="card-title">{{ r.name }}</h5>
+                                  <p class="text-muted mb-1">{{ r.description }}</p>
+                                  <p class="text-muted mb-1">{{ r.specialty }}</p>
+                                  <span class="badge bg-primary">${{ r.price }}</span>                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
